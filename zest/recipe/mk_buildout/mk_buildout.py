@@ -1,17 +1,18 @@
 import os
 import subprocess
-
 import logging
 import zc.buildout
 
 class MakeBuildout(object):
     _allowed_options = ['recipe',
                         'python', 'paster',
-                        'template', 'buildout_file']
+                        'template', 'buildout_file',
+                        'paster_commands']
     _base_options = {'python': 'python',
                      'paster': 'paster',
                      'template': 'plone',
-                     'buildout_file': 'buildout.cfg'}
+                     'buildout_file': 'buildout.cfg',
+                     'paster_commands': ''}
 
     def __init__(self, buildout, name, options):
         self.buildout = buildout
@@ -66,11 +67,25 @@ class MakeBuildout(object):
 
 
     def install(self):
-        self.logger.info('w00t, installing')
         self.check_options()
+        self.logger.info('Creating new sub buildout')
+        self.logger.info('Running %s create -t %s %s' % (
+            self.options['paster'],
+            self.options['template'],
+            self.name))
+
+        paster_input = os.tmpfile()
+        paster_input.write(self.options['paster_commands'].replace("''", ""))
+        paster_input.seek(0)
+        subprocess.Popen([self.options['paster'],
+                          'create',
+                          '-t',
+                          self.options['template'],
+                          self.name],
+                         stdin = paster_input)
+        paster_input.close()
         return []
 
     def update(self):
-        self.logger.info('w00t, updating')
         self.check_options()
 
