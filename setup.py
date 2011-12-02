@@ -32,8 +32,7 @@ long_description = (
    'Download\n'
     '********\n')
 
-entry_point = 'zest.recipe.mk_buildout:Recipe'
-entry_points = {"zc.buildout": ["default = %s" % entry_point]}
+entry_points = {'zc.buildout': ['default = zest.recipe.mk_buildout.mk_buildout:MakeBuildout']}
 
 tests_require = ['zope.testing', 'zc.buildout']
 
