@@ -2,6 +2,7 @@ import os
 import subprocess
 import logging
 import zc.buildout
+import re
 
 class MakeBuildout(object):
     _allowed_options = ['recipe',
@@ -12,7 +13,8 @@ class MakeBuildout(object):
                         'buildout_rename',
                         'paster_commands',
                         'extra_parts',
-                        'extra_options']
+                        'extra_options',
+                        'extra_eggs']
     _base_options = {'python': 'python',
                      'paster': 'paster',
                      'template': 'plone',
@@ -135,6 +137,8 @@ class MakeBuildout(object):
             eggs += [egg.split(os.sep)[-1]
                      for egg in self.buildout['buildout']['develop'].split('\n')]
 
+        eggs += [x for x in self.options['extra_eggs'].split('\n') if x]
+
         return [egg for egg in eggs
                 if eggs != 'zest.recipe.mk_buildout']
 
@@ -181,8 +185,26 @@ class MakeBuildout(object):
         b.write('\n\n')
 
         # We add extra options to the buildout.
-        b.write(self.options[ 'extra_options'])
+        extra_options = {'buildout': []}
+        exp = re.compile('\[(.*)\](.*)')
+        
+        for option in self.options['extra_options'].split('\n'):
+            if not option:
+                # First line might be blank.
+                continue
+
+            match = exp.match(option)
+            if match is None:
+                extra_options['buildout'].append(option)
+            else:
+                part, opt = match.groups()
+                if not part in extra_options:
+                    extra_options[part] = []
+                extra_options[part].append(opt)
+
+        b.write('\n'.join(extra_options['buildout']))
         b.write('\n\n')
+        del extra_options['buildout']
 
         # We also add the extra parts.
         b.write('parts+=\n')
@@ -199,6 +221,19 @@ class MakeBuildout(object):
                                        for x in value.split('\n')]))
                 elif value:
                     b.write('%s = %s\n' % (key, self.replace_dirs(value)))
+
+            if part in extra_options:
+                b.write('\n')
+                b.write('\n'.join(
+                    [self.replace_dirs(value) for value in extra_options[part]]))
+                del extra_options[part]
+
+            b.write('\n\n')
+
+        for part in extra_options:
+            b.write('[%s]\n' % part)
+            b.write('\n'.join(
+                [self.replace_dirs(value) for value in extra_options[part]]))
             b.write('\n\n')
 
         b.close()
