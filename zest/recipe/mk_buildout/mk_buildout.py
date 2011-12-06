@@ -58,7 +58,7 @@ class MakeBuildout(object):
         
             if option == 'python':
                 self._check_command_line(
-                    [value, '--help'],
+                    [value, '-h'],
                     'python [option] ... [-c cmd | -m mod | file | -] [arg] ...')
                 
             if option == 'paster':
@@ -104,6 +104,24 @@ class MakeBuildout(object):
         p.wait()
         paster_input.close()
 
+    def developed_eggs(self):
+        eggs = []
+
+        if '_mr.developer' in self.buildout.keys():
+            sources = self.buildout['buildout']['sources']
+            eggs += self.buildout[sources].keys()
+
+        if 'develop' in self.buildout['buildout']:
+            # The egg list will look something like that:
+            # 'src/my_egg\nsrc/my_other_egg'
+            # We first split on '\n' to get the real list, then we only
+            # keep the egg name by splitting on 'os.sep'.
+            eggs += [egg.split(os.sep)[-1]
+                     for egg in self.buildout['buildout']['develop'].split('\n')]
+
+        return [egg for egg in eggs
+                if eggs != 'zest.recipe.mk_buildout']
+
     def add_buildout_file(self):
         """ If needed, will change buildout.cfg in buildout_base.cfg.
         Then creates a buildout.cfg extending the 'buildout_file' option (
@@ -120,6 +138,22 @@ class MakeBuildout(object):
         b = open('buildout.cfg', 'w')
         b.write("[buildout]\n")
         b.write("extends = %s\n" % extends)
+
+        dev_eggs = self.developed_eggs()
+        # We add the eggs at the buildout level, not the instance one.
+        b.write('eggs+=\n')
+        b.write('\n'.join(['   %s' % egg for egg in dev_eggs]))
+        b.write('\n')
+
+        # We tell the eggs are developped from the main buildout, so the
+        # sub-buildout will not download the latest egg from Pypi but the development
+        # one (the goal is to test them after all....)
+        b.write('develop+=\n')
+        b.write('\n'.join(['   %s%ssrc%s%s' % (
+            self.buildout['buildout']['directory'], os.sep, os.sep, egg)
+                           for egg in dev_eggs]))
+        b.write('\n')
+
         b.close()
 
     def run_bootstrap(self):
