@@ -32,10 +32,37 @@ class MakeBuildout(object):
         self.options = {}
         self.options.update(self._base_options)
         self.options.update(options)
+        self.clean_options()
 
     @property
     def logger(self):
         return logging.getLogger(self.name)
+
+    def clean_options(self):
+        """ Cleans the potential += things.
+        Will append the content to the option is existing or
+        create a new entry if needed.
+        """
+        to_delete = []
+        exp = re.compile('(\S*)\s*\+')
+
+        for key in self.options.keys():
+            match = exp.match(key)
+            if match is None:
+                continue
+
+            to_delete.append(key)
+            base_key = match.groups()[0]
+            value = self.options[key]
+
+            if base_key in self.options:
+                self.options[base_key] += '\n%s' % value
+            else:
+                self.options[key] = value
+
+        # We remove the keys as they've been merged.
+        for key in to_delete:
+            del self.options[key]
 
     def _check_command_line(self, command, expected):
         """ Checks that 'excepted' is in the output of the command.
