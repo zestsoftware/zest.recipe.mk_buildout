@@ -14,14 +14,17 @@ class MakeBuildout(object):
                         'paster_commands',
                         'extra_parts',
                         'extra_options',
-                        'extra_eggs']
+                        'extra_eggs',
+                        'test_runner']
+
     _base_options = {'python': 'python',
                      'paster': 'paster',
                      'template': 'plone',
                      'buildout_file': 'buildout.cfg',
                      'buildout_rename': 'buildout_base.cfg',
                      'paster_commands': '',
-                     'extra_parts': ''}
+                     'extra_parts': '',
+                     'test_runner': 'bin/test'}
 
     def __init__(self, buildout, name, options):
         self.buildout = buildout

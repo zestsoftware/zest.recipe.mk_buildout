@@ -33,7 +33,6 @@ long_description = (
     '********\n')
 
 entry_points = {'zc.buildout': ['default = zest.recipe.mk_buildout.mk_buildout:MakeBuildout']}
-
 tests_require = ['zope.testing', 'zc.buildout']
 
 setup(name='zest.recipe.mk_buildout',
