@@ -5,16 +5,21 @@ import zc.buildout
 
 class MakeBuildout(object):
     _allowed_options = ['recipe',
-                        'python', 'paster',
-                        'template', 'buildout_file',
+                        'python',
+                        'paster',
+                        'template',
+                        'buildout_file',
                         'buildout_rename',
-                        'paster_commands']
+                        'paster_commands',
+                        'extra_parts',
+                        'extra_options']
     _base_options = {'python': 'python',
                      'paster': 'paster',
                      'template': 'plone',
                      'buildout_file': 'buildout.cfg',
                      'buildout_rename': 'buildout_base.cfg',
-                     'paster_commands': ''}
+                     'paster_commands': '',
+                     'extra_parts': ''}
 
     def __init__(self, buildout, name, options):
         self.buildout = buildout
@@ -50,6 +55,7 @@ class MakeBuildout(object):
         - python must be a python executable
         - same for paster
         - template must be available in paster templates
+        - extra_parts must exist in the original buildout. Rewrite it as a list.
         """
         for option, value in self.options.items():
             if option not in self._allowed_options:
@@ -74,6 +80,16 @@ class MakeBuildout(object):
                 except ValueError:
                     self.logger.error('Template "%s" unknown in paster' % value)
                     raise ValueError       
+
+            if option == 'extra_parts':
+                new_parts = []
+                for part in value.split('\n'):
+                    if not part in self.buildout.keys():
+                        self.logger.error('Part %s does not exist in the buildout.' % part)
+                        continue
+
+                    new_parts.append(part)
+                self.options['extra_parts'] = new_parts
 
     def go_to_parts(self):
         os.chdir(self.buildout['buildout']['parts-directory'])
@@ -122,6 +138,16 @@ class MakeBuildout(object):
         return [egg for egg in eggs
                 if eggs != 'zest.recipe.mk_buildout']
 
+    def replace_dirs(self, value):
+        """ Replaces paths to the main buildout by path
+        in the sub-buildout.
+        """
+        sub_path = os.sep.join([self.buildout['buildout']['parts-directory'],
+                              self.name])
+        main_path = self.buildout['buildout']['directory']
+
+        return value.replace(main_path, sub_path)
+
     def add_buildout_file(self):
         """ If needed, will change buildout.cfg in buildout_base.cfg.
         Then creates a buildout.cfg extending the 'buildout_file' option (
@@ -143,7 +169,7 @@ class MakeBuildout(object):
         # We add the eggs at the buildout level, not the instance one.
         b.write('eggs+=\n')
         b.write('\n'.join(['   %s' % egg for egg in dev_eggs]))
-        b.write('\n')
+        b.write('\n\n')
 
         # We tell the eggs are developped from the main buildout, so the
         # sub-buildout will not download the latest egg from Pypi but the development
@@ -152,7 +178,28 @@ class MakeBuildout(object):
         b.write('\n'.join(['   %s%ssrc%s%s' % (
             self.buildout['buildout']['directory'], os.sep, os.sep, egg)
                            for egg in dev_eggs]))
-        b.write('\n')
+        b.write('\n\n')
+
+        # We add extra options to the buildout.
+        b.write(self.options[ 'extra_options'])
+        b.write('\n\n')
+
+        # We also add the extra parts.
+        b.write('parts+=\n')
+        b.write('\n'.join(['  %s' % part
+                           for part in self.options['extra_parts']]))
+        b.write('\n\n')
+
+        for part in self.options['extra_parts']:
+            b.write('[%s]\n' % part)
+            for key, value in self.buildout[part].items():
+                if '\n' in value:
+                    b.write('%s=\n' % key)
+                    b.write('\n'.join(['  %s' % self.replace_dirs(x)
+                                       for x in value.split('\n')]))
+                elif value:
+                    b.write('%s = %s\n' % (key, self.replace_dirs(value)))
+            b.write('\n\n')
 
         b.close()
 
