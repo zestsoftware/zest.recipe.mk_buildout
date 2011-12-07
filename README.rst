@@ -16,6 +16,7 @@ them from the other, run the test again etc).
 It was originatelly created to test ``collective.sendaspdf`` with
 Plone 3 and 4.
 
+
 Available options
 -----------------
 
@@ -209,7 +210,7 @@ Let's have a look at the options set there:
 
 - buildout_file: I use custom zest recipes to create the buildout
   that do not create a ``buildout.cfg`` file, I have to specify which
-  bildout file to extend.
+  buildout file to extend.
 
 - extra_eggs: ``pdfminer`` is an egg that is needed to run the
   ``sendaspdf`` tests. I did not want to develop it (I just use it),

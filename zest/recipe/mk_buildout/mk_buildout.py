@@ -169,8 +169,6 @@ class MakeBuildout(object):
             eggs += [egg.split(os.sep)[-1]
                      for egg in self.buildout['buildout']['develop'].split('\n')]
 
-        eggs += [x for x in self.options['extra_eggs'].split('\n') if x]
-
         return [egg for egg in eggs
                 if egg not in ['', 'zest.recipe.mk_buildout',
                                'zest.recipe.multi_buildout_test']]
@@ -203,12 +201,14 @@ class MakeBuildout(object):
         b.write("extends = %s\n" % extends)
 
         dev_eggs = self.developed_eggs()
+        extra_eggs = [x for x in self.options['extra_eggs'].split('\n') if x]
         # We add the eggs at the buildout level, not the instance one.
-        if dev_eggs:
+        if dev_eggs or extra_eggs:
             b.write('eggs+=\n')
-            b.write('\n'.join(['   %s' % egg for egg in dev_eggs]))
+            b.write('\n'.join(['   %s' % egg for egg in dev_eggs + extra_eggs]))
             b.write('\n\n')
 
+        if dev_eggs:
             # We tell the eggs are developped from the main buildout, so the
             # sub-buildout will not download the latest egg from Pypi but the development
             # one (the goal is to test them after all....)
