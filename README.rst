@@ -11,16 +11,16 @@ All eggs developed locally in the main buildout (with ``mr.developer``
 or the ``develop`` part of the buildout) are automatically added to
 the sub-buildouts, so you can work with only one source for the
 tested egg (it avoids having to push changes from one buildout, pull
-them from the other, run the test again etc...).
+them from the other, run the test again etc).
 
 It was originatelly created to test ``collective.sendaspdf`` with
- Plone 3 and 4.
+Plone 3 and 4.
 
 Available options
 -----------------
 
 When writing a buildout part using ``zest.recipe.mk_buildout``, you
-have several options available::
+have several options available:
 
 - python (default:  'python'): the python executable that will be used
   inside the sub-buildout. If you use aliases to manage your various
@@ -105,7 +105,7 @@ As the template I used is interactive, I've added the list of things
 to type in for each questions. In most cases I let the default answer
 (''), I've just specified the mode used (easy), the Plone version
 (3.3.6) and the admin password ('admin').
-Two things can be seen in this options definition ::
+Two things can be seen in this options definition :
 
  - I did not start the commands on a new line (as I did for the
    develop part for example). This is due to the fact that if I start
@@ -205,7 +205,7 @@ tested with two versions of Plone: 3.3.5 and 4.
 
 As there's many common options for both parts, I first defined a
 [base] part in the buildout.
-Let's have a look at the options set there::
+Let's have a look at the options set there:
 
  - buildout_file: I use custom zest recipes to create the buildout
    that do not create a ``buildout.cfg`` file, I have to specify which
