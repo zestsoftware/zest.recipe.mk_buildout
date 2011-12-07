@@ -6,31 +6,13 @@ import os
 from setuptools import setup, find_packages
 
 
-def read(*rnames):
-    return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
-version = '1.0'
+version = open(os.path.join("zest", "recipe", "mk_buildout",
+                            "version.txt")).read().strip()
 
-long_description = (
-    read('README.txt')
-    + '\n' +
-    'Detailed Documentation\n'
-    '**********************\n'
-    + '\n' +
-    read('zest', 'recipe', 'mk_buildout', 'README.txt')
-    + '\n' +
-    'Contributors\n'
-    '************\n'
-    + '\n' +
-    read('CONTRIBUTORS.txt')
-    + '\n' +
-    'Change history\n'
-    '**************\n'
-    + '\n' +
-    read('CHANGES.txt')
-    + '\n' +
-   'Download\n'
-    '********\n')
+long_description=open("README.rst").read() + "\n" + \
+                  open(os.path.join("zest", "recipe", "mk_buildout",
+                                    "HISTORY.txt")).read()
 
 entry_points = {'zc.buildout': ['default = zest.recipe.mk_buildout.mk_buildout:MakeBuildout']}
 tests_require = ['zope.testing', 'zc.buildout']
@@ -48,9 +30,9 @@ setup(name='zest.recipe.mk_buildout',
         'License :: OSI Approved :: Zope Public License',
         ],
       keywords='',
-      author='',
-      author_email='',
-      url='http://svn.plone.org/svn/collective/',
+      author='Vincent Pretre',
+      author_email='v.pretre@zestsoftware.nl',
+      url='https://github.com/zestsoftware/zest.recipe.mk_buildout/',
       license='ZPL',
       packages=find_packages(exclude=['ez_setup']),
       namespace_packages=['zest', 'zest.recipe'],

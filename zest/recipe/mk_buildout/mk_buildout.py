@@ -24,6 +24,8 @@ class MakeBuildout(object):
                      'buildout_rename': 'buildout_base.cfg',
                      'paster_commands': '',
                      'extra_parts': '',
+                     'extra_eggs': '',
+                     'extra_options': '',
                      'test_runner': 'bin/test'}
 
     def __init__(self, buildout, name, options):
@@ -170,7 +172,8 @@ class MakeBuildout(object):
         eggs += [x for x in self.options['extra_eggs'].split('\n') if x]
 
         return [egg for egg in eggs
-                if eggs != 'zest.recipe.mk_buildout']
+                if egg not in ['', 'zest.recipe.mk_buildout',
+                               'zest.recipe.multi_buildout_test']]
 
     def replace_dirs(self, value):
         """ Replaces paths to the main buildout by path
@@ -201,18 +204,19 @@ class MakeBuildout(object):
 
         dev_eggs = self.developed_eggs()
         # We add the eggs at the buildout level, not the instance one.
-        b.write('eggs+=\n')
-        b.write('\n'.join(['   %s' % egg for egg in dev_eggs]))
-        b.write('\n\n')
+        if dev_eggs:
+            b.write('eggs+=\n')
+            b.write('\n'.join(['   %s' % egg for egg in dev_eggs]))
+            b.write('\n\n')
 
-        # We tell the eggs are developped from the main buildout, so the
-        # sub-buildout will not download the latest egg from Pypi but the development
-        # one (the goal is to test them after all....)
-        b.write('develop+=\n')
-        b.write('\n'.join(['   %s%ssrc%s%s' % (
-            self.buildout['buildout']['directory'], os.sep, os.sep, egg)
-                           for egg in dev_eggs]))
-        b.write('\n\n')
+            # We tell the eggs are developped from the main buildout, so the
+            # sub-buildout will not download the latest egg from Pypi but the development
+            # one (the goal is to test them after all....)
+            b.write('develop+=\n')
+            b.write('\n'.join(['   %s%ssrc%s%s' % (
+                self.buildout['buildout']['directory'], os.sep, os.sep, egg)
+                               for egg in dev_eggs]))
+            b.write('\n\n')
 
         # We add extra options to the buildout.
         extra_options = {'buildout': []}
@@ -237,28 +241,29 @@ class MakeBuildout(object):
         del extra_options['buildout']
 
         # We also add the extra parts.
-        b.write('parts+=\n')
-        b.write('\n'.join(['  %s' % part
-                           for part in self.options['extra_parts']]))
-        b.write('\n\n')
-
-        for part in self.options['extra_parts']:
-            b.write('[%s]\n' % part)
-            for key, value in self.buildout[part].items():
-                if '\n' in value:
-                    b.write('%s=\n' % key)
-                    b.write('\n'.join(['  %s' % self.replace_dirs(x)
-                                       for x in value.split('\n')]))
-                elif value:
-                    b.write('%s = %s\n' % (key, self.replace_dirs(value)))
-
-            if part in extra_options:
-                b.write('\n')
-                b.write('\n'.join(
-                    [self.replace_dirs(value) for value in extra_options[part]]))
-                del extra_options[part]
-
+        if self.options['extra_parts']:
+            b.write('parts+=\n')
+            b.write('\n'.join(['  %s' % part
+                               for part in self.options['extra_parts']]))
             b.write('\n\n')
+
+            for part in self.options['extra_parts']:
+                b.write('[%s]\n' % part)
+                for key, value in self.buildout[part].items():
+                    if '\n' in value:
+                        b.write('%s=\n' % key)
+                        b.write('\n'.join(['  %s' % self.replace_dirs(x)
+                                           for x in value.split('\n')]))
+                    elif value:
+                        b.write('%s = %s\n' % (key, self.replace_dirs(value)))
+
+                if part in extra_options:
+                    b.write('\n')
+                    b.write('\n'.join(
+                        [self.replace_dirs(value) for value in extra_options[part]]))
+                    del extra_options[part]
+
+                b.write('\n\n')
 
         for part in extra_options:
             b.write('[%s]\n' % part)
