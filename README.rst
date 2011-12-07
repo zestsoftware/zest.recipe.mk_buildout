@@ -105,14 +105,14 @@ As the template I used is interactive, I've added the list of things
 to type in for each questions. In most cases I let the default answer
 (''), I've just specified the mode used (easy), the Plone version
 (3.3.6) and the admin password ('admin').
-Two things can be seen in this options definition :
+Two things can be seen in this options definition:
 
- - I did not start the commands on a new line (as I did for the
-   develop part for example). This is due to the fact that if I start
-   on a new line, an empty entry will be added first.
+- I did not start the commands on a new line (as I did for the
+  develop part for example). This is due to the fact that if I start
+  on a new line, an empty entry will be added first.
 
- - empty lines are automatically deleted by buildout. So '' is
-   equivalent to "press enter" on the question.
+- empty lines are automatically deleted by buildout. So '' is
+  equivalent to "press enter" on the question.
 
 
 After running this buildout, a new folder appeared in the ``parts``
