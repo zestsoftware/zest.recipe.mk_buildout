@@ -118,6 +118,10 @@ class MakeBuildout(object):
             if option == 'extra_parts':
                 new_parts = []
                 for part in value.split('\n'):
+                    if not part:
+                        # Might happen with the first line.
+                        continue
+                    
                     if not part in self.buildout.keys():
                         self.logger.error('Part %s does not exist in the buildout.' % part)
                         continue
